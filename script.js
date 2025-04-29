@@ -60,6 +60,7 @@ const gameController = (function() {
     const updateBoard = function(cellIndex, marker) {
         validateMove(cellIndex)
         gameBoard.updateCell(cellIndex, marker);
+        displayController.updateDisplay(cellIndex, marker)
         handleGameState();
     };
 
@@ -126,4 +127,33 @@ const gameController = (function() {
 
 const displayController = (function() { 
 
-});
+    const MESSAGE = document.querySelector(".message")
+    const BOARDCONTAINER = document.querySelector(".board-container")
+
+    const displayBoard = function() {
+        const board = gameBoard.getBoard(); 
+        console.log(board.entries())
+        for (const [i, value] of board.entries()) {
+            console.log(`${i} and ${value}`)
+            const cell = document.createElement("div");
+            cell.textContent = value; 
+            cell.dataset.cell = i; 
+            BOARDCONTAINER.append(cell)
+        }
+    }
+
+    const updateDisplay = function(cellIndex, value) {
+        const cell = BOARDCONTAINER.querySelector(`[data-cell='${cellIndex}']`);
+        console.log(cell)
+
+        if (cell) {
+            cell.textContent = value;
+        }
+    }
+
+    displayBoard()
+
+    return {
+        updateDisplay
+    }
+})();
