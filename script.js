@@ -18,9 +18,9 @@ function createPlayer(marker) {
 const gameBoard = (function() {
 
     const board = [
-        "X", "X", "X",
-        "O", "O", "O",
-        "X", "X", "X"
+        "", "", "",
+        "", "", "",
+        "", "", ""
     ]; 
 
     const getBoard = function() {
@@ -115,6 +115,7 @@ const gameController = (function() {
 
     const resetGame = function() {
         gameBoard.resetBoard();
+        displayController.resetDisplay();
         winner = null;
         console.log("Game reset");
     };
@@ -131,9 +132,7 @@ const displayController = (function() {
     const BOARDCONTAINER = document.querySelector(".board-container")
 
     const displayBoard = function() {
-        const board = gameBoard.getBoard(); 
-        console.log(board.entries())
-        for (const [i, value] of board.entries()) {
+        for (const [i, value] of gameBoard.getBoard().entries()) {
             console.log(`${i} and ${value}`)
             const cell = document.createElement("div");
             cell.textContent = value; 
@@ -152,9 +151,19 @@ const displayController = (function() {
         }
     }
 
+    const resetDisplay = function() {
+        const cells = BOARDCONTAINER.querySelectorAll(".cell");
+        const board = gameBoard.getBoard();
+
+        cells.forEach((cell, index) => {
+            cell.textContent = board[index];
+        })
+    }
+
     displayBoard()
 
     return {
-        updateDisplay
+        updateDisplay,
+        resetDisplay
     }
 })();
