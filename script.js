@@ -18,9 +18,9 @@ function createPlayer(marker) {
 const gameBoard = (function() {
 
     const board = [
-        "", "", "",
-        "", "", "",
-        "", "", ""
+        "X", "X", "X",
+        "O", "O", "O",
+        "X", "X", "X"
     ]; 
 
     const getBoard = function() {
@@ -137,6 +137,7 @@ const displayController = (function() {
             console.log(`${i} and ${value}`)
             const cell = document.createElement("div");
             cell.textContent = value; 
+            cell.className = "cell";
             cell.dataset.cell = i; 
             BOARDCONTAINER.append(cell)
         }
