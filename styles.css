@@ -4,6 +4,35 @@
     box-sizing: border-box;
 }
 html , body{
+    height: 100%;
     min-height: 100vh;
     width: 100%;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.message {
+    padding: 1%;
+}
+
+.board-container {
+    width: 50%;
+    height: 50%;
+    border: 2px solid hsl(0, 0%, 0%);
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr;
+    align-items: stretch;
+}
+
+.cell {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 3rem;
+    border: 1px solid hsl(0, 0%, 0%);
 }
