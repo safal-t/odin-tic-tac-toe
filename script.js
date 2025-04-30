@@ -4,13 +4,16 @@ function createPlayer(marker) {
         throw new Error("Player marker can either be 'X' or 'O'.")
     }
 
-    const playerMarker = marker; 
+    const getPlayerMarker = function() {
+        return marker
+    }
 
     const makeMove = function(cell) {
-        gameController.updateBoard(cell, playerMarker)
+        gameController.manageMove(cell)
     }
 
     return {
+        getPlayerMarker,
         makeMove
     }
 }
@@ -49,7 +52,19 @@ const gameBoard = (function() {
 })(); 
 
 const gameController = (function() {
+
+    const playerX = createPlayer("X"); 
+    const playerO = createPlayer("O");
+
+    let currentPlayer = playerX;
     let winner = null;
+
+    const manageMove = function(cellIndex) {
+        validateMove(cellIndex)
+        updateBoard(cellIndex)
+        handleGameState();
+        switchPlayer();
+    }
 
     const validateMove = function(cellIndex) {
         if (gameBoard.getCell(cellIndex) !== "") {
@@ -57,16 +72,23 @@ const gameController = (function() {
         }
     };
 
-    const updateBoard = function(cellIndex, marker) {
-        validateMove(cellIndex)
+    const updateBoard = function(cellIndex) {
+        const marker = currentPlayer.getPlayerMarker(); 
         gameBoard.updateCell(cellIndex, marker);
         displayController.updateDisplay(cellIndex, marker)
-        handleGameState();
     };
 
     const handleGameState = function() {
         checkForWinner();
         checkForTie();
+    };
+
+    const switchPlayer = function() {
+        console.log(`${currentPlayer.getPlayerMarker()} is the current player before the switch`)
+        currentPlayer = currentPlayer.getPlayerMarker() === "X" 
+            ? playerO
+            : playerX;
+        console.log(`${currentPlayer.getPlayerMarker()} is the current player after the switch`)
     };
 
     const checkForWinner = function() {
@@ -121,11 +143,13 @@ const gameController = (function() {
     };
 
     return {
+        currentPlayer,
+        manageMove,
         updateBoard,
     };
 
 })();
-
+                       
 const displayController = (function() { 
 
     const MESSAGE = document.querySelector(".message")
@@ -138,6 +162,11 @@ const displayController = (function() {
             cell.textContent = value; 
             cell.className = "cell";
             cell.dataset.cell = i; 
+
+            cell.addEventListener("click", () => { 
+                gameController.manageMove(i)
+            })
+
             BOARDCONTAINER.append(cell)
         }
     }
