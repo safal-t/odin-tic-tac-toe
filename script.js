@@ -263,3 +263,239 @@ const displayController = (function() {
 
 })();
 
+// If they were classes:
+
+// class Player {
+//     constructor(name, marker) {
+//         if (marker !== "X" && marker !== "O") {
+//             DisplayController.displayMessage("Player marker can either be 'X' or 'O'.");
+//             throw new Error("Player marker can either be 'X' or 'O'.");
+//         }
+//         this.name = name;
+//         this.marker = marker;
+//     }
+
+//     getName() {
+//         return this.name;
+//     }
+
+//     getPlayerMarker() {
+//         return this.marker;
+//     }
+
+//     makeMove(cell) {
+//         GameController.manageMove(cell);
+//     }
+// }
+
+// class GameBoard {
+//     constructor() {
+//         this.board = Array(9).fill("");
+//     }
+
+//     getBoard() {
+//         return this.board;
+//     }
+
+//     getCell(cellIndex) {
+//         return this.board[cellIndex];
+//     }
+
+//     updateCell(cellIndex, marker) {
+//         this.board[cellIndex] = marker;
+//     }
+
+//     resetBoard() {
+//         this.board.fill("");
+//     }
+// }
+
+// class GameController {
+//     constructor() {
+//         this.currentPlayer = null;
+//         this.nextPlayer = null;
+//         this.winner = null;
+//         this.gameOver = false;
+//         this.gameBoard = new GameBoard();
+//     }
+
+//     startGame(playerX, playerO) {
+//         this.currentPlayer = playerX;
+//         this.nextPlayer = playerO;
+//     }
+
+//     manageMove(cellIndex) {
+//         if (!this.currentPlayer) {
+//             DisplayController.displayMessage("Game has not started yet. Please enter player names.");
+//             return;
+//         }
+//         this.validateMove(cellIndex);
+//         this.updateBoard(cellIndex);
+//         this.handleGameState();
+//         if (!this.gameOver) {
+//             this.switchPlayer();
+//             DisplayController.displayMessage(`${this.currentPlayer.getName()}'s turn`);
+//         }
+//     }
+
+//     validateMove(cellIndex) {
+//         if (this.gameBoard.getCell(cellIndex) !== "") {
+//             DisplayController.displayMessage("Invalid move: Cell is not empty");
+//             throw new Error("Invalid move: Cell is not empty");
+//         }
+//     }
+
+//     updateBoard(cellIndex) {
+//         const marker = this.currentPlayer.getPlayerMarker();
+//         this.gameBoard.updateCell(cellIndex, marker);
+//         DisplayController.updateDisplay(cellIndex, marker);
+//     }
+
+//     handleGameState() {
+//         this.checkForWinner();
+//         this.checkForTie();
+//     }
+
+//     switchPlayer() {
+//         [this.currentPlayer, this.nextPlayer] = [this.nextPlayer, this.currentPlayer];
+//     }
+
+//     checkForWinner() {
+//         const winCombos = [
+//             [0, 1, 2],
+//             [3, 4, 5],
+//             [6, 7, 8],
+//             [0, 3, 6],
+//             [1, 4, 7],
+//             [2, 5, 8],
+//             [0, 4, 8],
+//             [2, 4, 6],
+//         ];
+
+//         for (const [a, b, c] of winCombos) {
+//             if (
+//                 this.gameBoard.getCell(a) &&
+//                 this.gameBoard.getCell(a) === this.gameBoard.getCell(b) &&
+//                 this.gameBoard.getCell(a) === this.gameBoard.getCell(c)
+//             ) {
+//                 this.declareWinner(this.currentPlayer);
+//             }
+//         }
+//     }
+
+//     declareWinner(winner) {
+//         DisplayController.displayMessage(`The winner is ${winner.getName()}`);
+//         this.gameOverFunc();
+//     }
+
+//     checkForTie() {
+//         if (this.gameBoard.getBoard().every(cell => cell !== "")) {
+//             if (!this.winner) {
+//                 this.declareTie();
+//             }
+//         }
+//     }
+
+//     declareTie() {
+//         DisplayController.displayMessage("The game is tied");
+//         this.gameOverFunc();
+//     }
+
+//     resetGame() {
+//         this.gameBoard.resetBoard();
+//         DisplayController.resetDisplay();
+//         this.winner = null;
+//         DisplayController.displayMessage("Game reset");
+//     }
+
+//     gameOverFunc() {
+//         this.gameOver = true;
+//         document.querySelectorAll(".board-container .cell").forEach(cell => {
+//             cell.style.pointerEvents = "none";
+//         });
+//         DisplayController.gameOver();
+//     }
+// }
+
+// class DisplayController {
+//     static MESSAGE = document.querySelector(".message");
+//     static BOARDCONTAINER = document.querySelector(".board-container");
+//     static FORM = document.querySelector("form");
+//     static BODY = document.querySelector("body");
+
+//     static gameActive = false;
+//     static playerX = null;
+//     static playerO = null;
+
+//     static init() {
+//         this.FORM.addEventListener("submit", (event) => {
+//             event.preventDefault();
+//             this.playerX = new Player(this.FORM.querySelector("#playerX-name").value, "X");
+//             this.playerO = new Player(this.FORM.querySelector("#playerO-name").value, "O");
+//             this.gameActive = true;
+//             gameControllerInstance.startGame(this.playerX, this.playerO);
+//             this.displayMessage("Game Started");
+//             this.FORM.style.display = "none";
+//             const h3X = document.createElement("h3");
+//             const h3O = document.createElement("h3");
+//             h3X.textContent = `PlayerX: ${this.playerX.getName()}`;
+//             h3O.textContent = `PlayerO: ${this.playerO.getName()}`;
+//             this.BODY.append(h3X, h3O);
+//         });
+
+//         this.displayBoard();
+//     }
+
+//     static displayBoard() {
+//         for (const [i, value] of gameControllerInstance.gameBoard.getBoard().entries()) {
+//             const cell = document.createElement("div");
+//             cell.textContent = value;
+//             cell.className = "cell";
+//             cell.dataset.cell = i;
+
+//             cell.addEventListener("click", () => {
+//                 if (this.gameActive) {
+//                     gameControllerInstance.manageMove(i);
+//                 } else {
+//                     this.displayMessage("Please enter player names");
+//                 }
+//             });
+
+//             this.BOARDCONTAINER.append(cell);
+//         }
+//     }
+
+//     static updateDisplay(cellIndex, value) {
+//         const cell = this.BOARDCONTAINER.querySelector(`[data-cell='${cellIndex}']`);
+
+//         if (cell) {
+//             cell.textContent = value;
+//         }
+//     }
+
+//     static resetDisplay() {
+//         const cells = this.BOARDCONTAINER.querySelectorAll(".cell");
+//         const board = gameControllerInstance.gameBoard.getBoard();
+
+//         cells.forEach((cell, index) => {
+//             cell.textContent = board[index];
+//         });
+//     }
+
+//     static displayMessage(message) {
+//         this.MESSAGE.textContent = message;
+//     }
+
+//     static gameOver() {
+//         const resetButton = document.createElement("button");
+//         resetButton.textContent = "Restart Game";
+//         resetButton.className = "reset-button";
+//         resetButton.addEventListener("click", () => {
+//             location.reload();
+//         });
+//         this.BODY.append(resetButton);
+//     }
+// }
+
+// const gameControllerInstance = new GameController();
+// DisplayController.init();
