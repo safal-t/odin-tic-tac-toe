@@ -1,8 +1,12 @@
-function createPlayer(marker) {
+function createPlayer(name, marker) {
 
     if (marker !== "X" && marker !== "O") {
+        displayController.displayMessage("Player marker can either be 'X' or 'O'.")
         throw new Error("Player marker can either be 'X' or 'O'.")
     }
+    const playerName = name;
+
+    const getName = () => name
 
     const getPlayerMarker = function() {
         return marker
@@ -13,6 +17,7 @@ function createPlayer(marker) {
     }
 
     return {
+        getName,
         getPlayerMarker,
         makeMove
     }
@@ -40,7 +45,6 @@ const gameBoard = (function() {
 
     const resetBoard = function() {
         board.fill("");
-        console.log('Board reset')
     }
 
     return {
@@ -51,31 +55,42 @@ const gameBoard = (function() {
     }
 })(); 
 
-const gameController = (function() {
+const gameController = function() {
 
-    const playerX = createPlayer("X"); 
-    const playerO = createPlayer("O");
-
-    let currentPlayer = playerX;
+    let currentPlayer = null; 
     let winner = null;
+    let gameOver = false;
+
+    const startGame = function(playerX, playerO) {
+        currentPlayer = playerX
+        nextPlayer = playerO
+    };
 
     const manageMove = function(cellIndex) {
-        validateMove(cellIndex)
-        updateBoard(cellIndex)
+        if (!currentPlayer) {
+            displayController.displayMessage("Game has not started yet. Please enter player names.");
+            return;
+        }
+        validateMove(cellIndex);
+        updateBoard(cellIndex);
         handleGameState();
-        switchPlayer();
-    }
+        if (!gameOver) {
+            switchPlayer();
+            displayController.displayMessage(`${currentPlayer.getName()}'s turn`);
+        }
+    };
 
     const validateMove = function(cellIndex) {
         if (gameBoard.getCell(cellIndex) !== "") {
+            displayController.displayMessage("Invalid move: Cell is not empty");
             throw new Error("Invalid move: Cell is not empty");
         }
     };
 
     const updateBoard = function(cellIndex) {
-        const marker = currentPlayer.getPlayerMarker(); 
+        const marker = currentPlayer.getPlayerMarker();
         gameBoard.updateCell(cellIndex, marker);
-        displayController.updateDisplay(cellIndex, marker)
+        displayController.updateDisplay(cellIndex, marker);
     };
 
     const handleGameState = function() {
@@ -84,12 +99,10 @@ const gameController = (function() {
     };
 
     const switchPlayer = function() {
-        console.log(`${currentPlayer.getPlayerMarker()} is the current player before the switch`)
-        currentPlayer = currentPlayer.getPlayerMarker() === "X" 
-            ? playerO
-            : playerX;
-        console.log(`${currentPlayer.getPlayerMarker()} is the current player after the switch`)
-    };
+        const temp = currentPlayer
+        currentPlayer = nextPlayer
+        nextPlayer = temp;
+    }
 
     const checkForWinner = function() {
         const winCombos = [
@@ -109,14 +122,14 @@ const gameController = (function() {
                 gameBoard.getCell(a) === gameBoard.getCell(b) &&
                 gameBoard.getCell(a) === gameBoard.getCell(c)
             ) {
-                declareWinner(gameBoard.getCell(a));
+                declareWinner(currentPlayer);
             }
         }
     };
 
     const declareWinner = function(winner) {
-        console.log(`The winner is ${winner}`);
-        resetGame()
+        displayController.displayMessage(`The winner is ${winner.getName()}`);
+        gameOverFunc()
     };
 
     const checkForTie = function() {
@@ -131,49 +144,83 @@ const gameController = (function() {
     };
 
     const declareTie = function() {
-        console.log("The game is tied");
-        resetGame()
+        displayController.displayMessage("The game is tied");
+        gameOverFunc()
     };
 
     const resetGame = function() {
         gameBoard.resetBoard();
         displayController.resetDisplay();
         winner = null;
-        console.log("Game reset");
+        displayController.displayMessage("Game reset");
     };
 
+    const gameOverFunc = function() {
+        gameOver = true;
+        document.querySelectorAll(".board-container .cell").forEach(cell => {
+            cell.style.pointerEvents = "none";
+        });
+        displayController.gameOver()
+    }
+
     return {
-        currentPlayer,
+        startGame, 
         manageMove,
         updateBoard,
     };
 
-})();
+};
+
+const gameControllerInstance = gameController();
                        
 const displayController = (function() { 
 
     const MESSAGE = document.querySelector(".message")
     const BOARDCONTAINER = document.querySelector(".board-container")
+    const FORM = document.querySelector("form")
+    const BODY = document.querySelector("body");
+
+    gameActive = false;
+    playerX = null;
+    playerO = null;
+
+    FORM.addEventListener("submit", (event) => {
+        event.preventDefault();
+        playerX = createPlayer(FORM.querySelector("#playerX-name").value, "X");
+        playerO = createPlayer(FORM.querySelector("#playerO-name").value, "O");
+        gameActive = true;
+        gameControllerInstance.startGame(playerX, playerO); 
+        displayMessage("Game Started");
+        FORM.style.display = "none";
+        const h3X = document.createElement("h3");
+        const h3O = document.createElement("h3");
+        h3X.textContent = `PlayerX: ${playerX.getName()}`
+        h3O.textContent = `PlayerO: ${playerO.getName()}`
+        BODY.append(h3X, h3O)
+    
+    });
 
     const displayBoard = function() {
         for (const [i, value] of gameBoard.getBoard().entries()) {
-            console.log(`${i} and ${value}`)
             const cell = document.createElement("div");
             cell.textContent = value; 
             cell.className = "cell";
             cell.dataset.cell = i; 
-
+    
             cell.addEventListener("click", () => { 
-                gameController.manageMove(i)
+                if (gameActive) {
+                    gameControllerInstance.manageMove(i);
+                } else {
+                    displayMessage("Please enter player names")
+                }
             })
-
+    
             BOARDCONTAINER.append(cell)
         }
-    }
+    };
 
     const updateDisplay = function(cellIndex, value) {
         const cell = BOARDCONTAINER.querySelector(`[data-cell='${cellIndex}']`);
-        console.log(cell)
 
         if (cell) {
             cell.textContent = value;
@@ -189,10 +236,30 @@ const displayController = (function() {
         })
     }
 
+    const displayMessage = function(message) {
+        MESSAGE.textContent = message; 
+    }
+    
+    const gameOver = function() {
+        const resetButton = document.createElement("button");
+        resetButton.textContent = "Restart Game";
+        resetButton.className = "reset-button";
+        resetButton.addEventListener("click", () => {
+            location.reload();
+        });
+        BODY.append(resetButton);
+    }
+
     displayBoard()
 
     return {
         updateDisplay,
-        resetDisplay
+        resetDisplay,
+        displayMessage,
+        playerX,
+        playerO,
+        gameOver
     }
+
 })();
+
